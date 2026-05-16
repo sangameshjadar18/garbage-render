@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Report — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="form-page" style="padding-top: 90px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="dashboard-header fade-in">
+                    <h2><i class="bi bi-plus-circle me-2"></i>Submit a Report</h2>
+                    <p>Report a garbage issue in your area. Provide as much detail as possible.</p>
+                </div>
+
+                <div class="form-card fade-in">
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert-custom alert-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <div>
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                    <div>{{ field.label }}: {{ error }}</div>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="id_title" class="form-label">Issue Title <span class="text-danger">*</span></label>
+                            {{ form.title }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Description <span class="text-danger">*</span></label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label">Location / Address <span class="text-danger">*</span></label>
+                            {{ form.location }}
+                            <small class="text-secondary">Enter the address, landmark, or area name</small>
+                        </div>
+
+                        <div class="mb-4 glass-card p-3">
+                            <h6 class="mb-3"><i class="bi bi-geo-fill text-info me-2"></i>Pinpoint Exact Location (Preferred)</h6>
+                            <p class="small text-secondary mb-3">Using GPS is more accurate and helps workers find the garbage faster. You can use auto-location, manual map link, or leave it blank.</p>
+                            
+                            <div class="mb-3">
+                                <label for="id_map_link" class="form-label small">Google Maps Link (Optional)</label>
+                                {{ form.map_link }}
+                            </div>
+
+                            {{ form.latitude }}
+                            {{ form.longitude }}
+
+                            <button type="button" onclick="getLocation()" class="btn btn-outline-info w-100">
+                                <i class="bi bi-crosshair me-2"></i>Use Current GPS Location
+                            </button>
+                            <div id="location-status" class="small mt-2 text-center text-success" style="display: none;">
+                                <i class="bi bi-check-circle me-1"></i>Location captured successfully!
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_priority" class="form-label">Priority Level</label>
+                                {{ form.priority }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="id_image" class="form-label">Photo Evidence</label>
+                                {{ form.image }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-accent-custom">
+                                <i class="bi bi-send me-2"></i>Submit Report
+                            </button>
+                            <a href="{% url 'citizen_dashboard' %}" class="btn btn-outline-custom">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getLocation() {
+    const statusDiv = document.getElementById("location-status");
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById("id_latitude").value = position.coords.latitude;
+            document.getElementById("id_longitude").value = position.coords.longitude;
+            
+            // Show success message inside UX instead of annoying alert array
+            statusDiv.style.display = "block";
+            statusDiv.className = "small mt-2 text-center text-success fade-in";
+            statusDiv.innerHTML = '<i class="bi bi-check-circle me-1"></i>Location captured successfully! (' + position.coords.latitude.toFixed(4) + ', ' + position.coords.longitude.toFixed(4) + ')';
+        }, function(error) {
+            statusDiv.style.display = "block";
+            statusDiv.className = "small mt-2 text-center text-danger fade-in";
+            statusDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Location access denied or failed.';
+        });
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+</script>
+{% endblock %}

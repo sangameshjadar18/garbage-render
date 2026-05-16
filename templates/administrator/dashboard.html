@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard — Location Based GMS{% endblock %}
+
+
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-shield-check me-2"></i>Admin Dashboard</h2>
+            <p>System overview and analytics for Location Based GMS platform.</p>
+        </div>
+
+        <!-- User & System Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-lg-2 fade-in stagger-1">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon icon-primary"><i class="bi bi-people"></i></div>
+                    <div class="stat-number" data-counter="{{ total_users }}">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 fade-in stagger-2">
+                <div class="stat-card stat-cyan">
+                    <div class="stat-icon icon-cyan"><i class="bi bi-person"></i></div>
+                    <div class="stat-number" data-counter="{{ total_citizens }}">0</div>
+                    <div class="stat-label">Citizens</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 fade-in stagger-3">
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon icon-orange"><i class="bi bi-wrench"></i></div>
+                    <div class="stat-number" data-counter="{{ total_workers }}">0</div>
+                    <div class="stat-label">Workers</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 fade-in stagger-4">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon icon-primary"><i class="bi bi-file-text"></i></div>
+                    <div class="stat-number" data-counter="{{ total_reports }}">0</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 fade-in">
+                <div class="stat-card stat-green">
+                    <div class="stat-icon icon-green"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-number" data-counter="{{ resolved_reports }}">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2 fade-in">
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon icon-red"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="stat-number" data-counter="{{ pending_reports }}">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8 fade-in">
+                <div class="chart-container">
+                    <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Reports This Week</h6>
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4 fade-in">
+                <div class="chart-container">
+                    <h6 class="mb-3"><i class="bi bi-pie-chart me-2"></i>Priority Distribution</h6>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Status Overview -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 fade-in">
+                <div class="glass-card text-center">
+                    <div class="stat-icon icon-orange mx-auto"><i class="bi bi-hourglass-split"></i></div>
+                    <h3 class="mt-2 mb-0" data-counter="{{ pending_reports }}">0</h3>
+                    <p class="text-secondary small">Pending</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="glass-card text-center">
+                    <div class="stat-icon icon-primary mx-auto"><i class="bi bi-person-check"></i></div>
+                    <h3 class="mt-2 mb-0" data-counter="{{ assigned_reports }}">0</h3>
+                    <p class="text-secondary small">Assigned</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="glass-card text-center">
+                    <div class="stat-icon icon-cyan mx-auto"><i class="bi bi-gear"></i></div>
+                    <h3 class="mt-2 mb-0" data-counter="{{ in_progress_reports }}">0</h3>
+                    <p class="text-secondary small">In Progress</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in">
+                <div class="glass-card text-center">
+                    <div class="stat-icon icon-green mx-auto"><i class="bi bi-check2-all"></i></div>
+                    <h3 class="mt-2 mb-0" data-counter="{{ resolved_reports }}">0</h3>
+                    <p class="text-secondary small">Resolved</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bin Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4 fade-in">
+                <div class="glass-card text-center">
+                    <i class="bi bi-trash3" style="font-size: 2rem; color: var(--primary);"></i>
+                    <h3 class="mt-2 mb-0" data-counter="{{ total_bins }}">0</h3>
+                    <p class="text-secondary small">Total Bins</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in">
+                <div class="glass-card text-center">
+                    <i class="bi bi-exclamation-octagon" style="font-size: 2rem; color: var(--accent-red);"></i>
+                    <h3 class="mt-2 mb-0" data-counter="{{ overflow_bins }}">0</h3>
+                    <p class="text-secondary small">Overflow Bins</p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in">
+                <div class="glass-card text-center">
+                    <i class="bi bi-exclamation-diamond" style="font-size: 2rem; color: var(--accent-orange);"></i>
+                    <h3 class="mt-2 mb-0" data-counter="{{ full_bins }}">0</h3>
+                    <p class="text-secondary small">Full Bins</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 fade-in">
+                <a href="{% url 'manage_users' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-3">
+                        <i class="bi bi-people" style="font-size: 1.8rem; color: var(--primary);"></i>
+                        <h6 class="mt-2 mb-0 text-white">Manage Users</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 fade-in">
+                <a href="{% url 'manage_bins' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-3">
+                        <i class="bi bi-trash3" style="font-size: 1.8rem; color: var(--accent-green);"></i>
+                        <h6 class="mt-2 mb-0 text-white">Manage Bins</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 fade-in">
+                <a href="{% url 'reports_analytics' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-3">
+                        <i class="bi bi-bar-chart" style="font-size: 1.8rem; color: var(--accent-orange);"></i>
+                        <h6 class="mt-2 mb-0 text-white">All Reports</h6>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3 fade-in">
+                <a href="{% url 'manage_feedback' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-3">
+                        <i class="bi bi-star-fill" style="font-size: 1.8rem; color: var(--accent-yellow, #ffc107);"></i>
+                        <h6 class="mt-2 mb-0 text-white">User Feedback</h6>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- Recent Reports Table -->
+        <div class="fade-in">
+            <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Recent Reports</h5>
+            {% if recent_reports %}
+            <div class="table-glass">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Title</th>
+                            <th>Citizen</th>
+                            <th>Priority</th>
+                            <th>Rating</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td><strong>{{ report.title|truncatechars:25 }}</strong></td>
+                            <td>{{ report.citizen.username }}</td>
+                            <td><span class="badge bg-{{ report.priority_color }} badge-status">{{ report.get_priority_display }}</span></td>
+                            <td>
+                                {% with report.feedback_set.first as fb %}
+                                    {% if fb %}
+                                        <span class="text-warning">
+                                        {% for i in "12345"|make_list %}{% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}{% endfor %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-secondary">-</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td><span class="badge bg-{{ report.status_color }} badge-status">{{ report.get_status_display }}</span></td>
+                            <td>
+                                {% if report.status == 'pending' %}
+                                <a href="{% url 'assign_task' report.id %}" class="btn btn-sm btn-accent-custom" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                                    <i class="bi bi-person-plus me-1"></i>Assign
+                                </a>
+                                {% else %}
+                                <span class="text-secondary small">{{ report.assigned_worker.username|default:'-' }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="glass-card empty-state">
+                <div class="empty-icon">📊</div>
+                <h5>No reports yet</h5>
+                <p>Reports will appear here once citizens start submitting.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Feedback Table -->
+        <div class="fade-in mt-5 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-star-fill text-warning me-2"></i>Recent Citizen Feedback</h5>
+                <a href="{% url 'manage_feedback' %}" class="btn btn-outline-custom btn-sm">View All Feedback</a>
+            </div>
+            {% if recent_feedback %}
+            <div class="table-glass">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Citizen</th>
+                            <th>Worker</th>
+                            <th>Report</th>
+                            <th>Rating</th>
+                            <th>Feedback</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fb in recent_feedback %}
+                        <tr>
+                            <td><strong>{{ fb.user.username }}</strong></td>
+                            <td><span class="text-secondary small">{{ fb.report.worker.username|default:fb.report.assigned_worker.username|default:'-' }}</span></td>
+                            <td>{{ fb.report.title|truncatechars:25 }}</td>
+                            <td>
+                                <span class="text-warning">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </td>
+                            <td><div class="text-wrap" style="max-width:300px;">{{ fb.message|truncatechars:60 }}</div></td>
+                            <td>{{ fb.created_at|date:"M d" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="glass-card empty-state pb-4">
+                <p class="text-secondary mb-0 mt-3">No feedback ratings have been submitted yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Weekly Reports Chart
+    const weeklyCtx = document.getElementById('weeklyChart')?.getContext('2d');
+    if (weeklyCtx) {
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ weekly_labels|safe }},
+                datasets: [{
+                    label: 'Reports',
+                    data: {{ weekly_data|safe }},
+                    backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#a0a0b8', stepSize: 1 },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#a0a0b8' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // Priority Distribution Chart
+    const priorityCtx = document.getElementById('priorityChart')?.getContext('2d');
+    if (priorityCtx) {
+        new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low', 'Medium', 'High', 'Critical'],
+                datasets: [{
+                    data: [
+                        {{ priority_data.low }},
+                        {{ priority_data.medium }},
+                        {{ priority_data.high }},
+                        {{ priority_data.critical }}
+                    ],
+                    backgroundColor: [
+                        'rgba(67, 233, 123, 0.7)',
+                        'rgba(56, 178, 172, 0.7)',
+                        'rgba(246, 153, 63, 0.7)',
+                        'rgba(229, 62, 62, 0.7)',
+                    ],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#a0a0b8', padding: 15 }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

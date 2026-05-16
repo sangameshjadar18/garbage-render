@@ -1,0 +1,148 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <span class="brand-icon">♻️</span>Location Based GMS
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+
+                {% if user.is_authenticated %}
+
+                    {% if user.role == 'citizen' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'citizen_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'submit_report' %}">
+                            <i class="bi bi-plus-circle me-1"></i>New Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'report_list' %}">
+                            <i class="bi bi-list-check me-1"></i>My Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nearby_bins_map' %}">
+                            <i class="bi bi-geo-alt me-1"></i>Nearby Bins
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if user.role == 'worker' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'worker_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'task_list' %}">
+                            <i class="bi bi-clipboard-check me-1"></i>My Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'my_tasks' %}">
+                            <i class="bi bi-trash3 me-1"></i>My Bins
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if user.role == 'admin' %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'manage_users' %}">
+                            <i class="bi bi-people me-1"></i>Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'manage_bins' %}">
+                            <i class="bi bi-trash3 me-1"></i>Bins
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reports_analytics' %}">
+                            <i class="bi bi-bar-chart me-1"></i>Reports
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Notification Bell with AJAX-updated badge -->
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown" id="notif-bell">
+                            <i class="bi bi-bell me-1"></i>
+                            <span id="notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; {% if not notifications %}display:none;{% endif %}">
+                                {{ notifications.count|default:"0" }}
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="background: var(--surface); border: 1px solid var(--border); min-width: 320px; max-height: 400px; overflow-y: auto;">
+                            <li><h6 class="dropdown-header text-light d-flex align-items-center"><span class="live-dot"></span>Notifications</h6></li>
+                            <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
+                            <!-- Dynamically updated via AJAX -->
+                            <div id="notif-dropdown-body">
+                                {% for notif in notifications %}
+                                <li>
+                                    <div class="dropdown-item text-light" style="white-space: normal; font-size: 0.9rem;">
+                                        <small class="text-muted d-block">{{ notif.created_at|timesince }} ago</small>
+                                        {{ notif.message }}
+                                    </div>
+                                </li>
+                                {% if not forloop.last %}<li><hr class="dropdown-divider" style="border-color: var(--border);"></li>{% endif %}
+                                {% empty %}
+                                <li><span class="dropdown-item text-muted">No new notifications.</span></li>
+                                {% endfor %}
+                            </div>
+                            <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
+                            <li><a id="mark-all-read-btn" class="dropdown-item text-center" style="color: var(--accent-green); cursor: pointer;">Mark all read</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="background: var(--surface); border: 1px solid var(--border);">
+                            <li>
+                                <a class="dropdown-item text-light" href="{% url 'profile' %}">
+                                    <i class="bi bi-person me-2"></i>Profile
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
+                            <li>
+                                <a class="dropdown-item text-light" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-btn" href="{% url 'register' %}">
+                            <i class="bi bi-person-plus me-1"></i>Register
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- Hidden CSRF token for AJAX requests -->
+{% if user.is_authenticated %}
+<form style="display:none;"><input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}"></form>
+{% endif %}

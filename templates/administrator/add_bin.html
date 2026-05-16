@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Bin — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="form-page" style="padding-top: 90px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <a href="{% url 'manage_bins' %}" class="btn btn-outline-custom btn-sm mb-3 fade-in">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Bins
+                </a>
+
+                <div class="form-card fade-in">
+                    <h4 class="mb-1"><i class="bi bi-plus-circle me-2"></i>Add New Garbage Bin</h4>
+                    <p class="text-secondary mb-4">Register a new garbage bin location in the system.</p>
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert-custom alert-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Please correct the errors below.
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            {{ form.location }}
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Latitude</label>
+                                {{ form.latitude }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Longitude</label>
+                                {{ form.longitude }}
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Waste Type</label>
+                                {{ form.waste_type }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Capacity (%)</label>
+                                {{ form.capacity }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Status</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">Assigned Worker</label>
+                                {{ form.assigned_worker }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-3">
+                            <button type="submit" class="btn btn-accent-custom">
+                                <i class="bi bi-check-lg me-2"></i>Add Bin
+                            </button>
+                            <a href="{% url 'manage_bins' %}" class="btn btn-outline-custom">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

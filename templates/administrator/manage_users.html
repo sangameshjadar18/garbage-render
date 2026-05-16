@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Users — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-people me-2"></i>Manage Users</h2>
+            <p>View, search, and manage all registered users.</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-in">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary mb-1">Role</label>
+                    <select name="role" class="form-select form-select-sm">
+                        <option value="">All Roles</option>
+                        <option value="citizen" {% if role_filter == 'citizen' %}selected{% endif %}>Citizen</option>
+                        <option value="worker" {% if role_filter == 'worker' %}selected{% endif %}>Worker</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary mb-1">Search</label>
+                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Username, email, or phone" value="{{ search }}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1" style="padding: 0.5rem 1rem;">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                    <a href="{% url 'manage_users' %}" class="btn btn-outline-custom btn-sm" style="padding: 0.5rem 1rem;">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        {% if users %}
+        <div class="table-glass fade-in">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td><strong>{{ u.username }}</strong></td>
+                        <td>{{ u.email|default:'-' }}</td>
+                        <td>
+                            <span class="badge badge-status" style="background: {% if u.role == 'admin' %}var(--gradient-warm){% elif u.role == 'worker' %}var(--gradient-cool){% else %}var(--gradient-primary){% endif %};">
+                                {{ u.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ u.phone|default:'-' }}</td>
+                        <td>
+                            {% if u.is_active %}
+                            <span class="badge bg-success badge-status">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger badge-status">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            {% if u != request.user %}
+                            <form method="POST" action="{% url 'toggle_user_status' u.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-custom{% else %}btn-accent-custom{% endif %}" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                    {% if u.is_active %}
+                                    <i class="bi bi-slash-circle"></i>
+                                    {% else %}
+                                    <i class="bi bi-check-circle"></i>
+                                    {% endif %}
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted small">You</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="glass-card empty-state fade-in">
+            <div class="empty-icon">👥</div>
+            <h5>No users found</h5>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

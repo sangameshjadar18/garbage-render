@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Analytics — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-bar-chart me-2"></i>Reports & Analytics</h2>
+            <p>View, filter, and manage all garbage reports across the system.</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-in">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>Assigned</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Priority</label>
+                    <select name="priority" class="form-select form-select-sm">
+                        <option value="">All Priorities</option>
+                        <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="critical" {% if priority_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Search</label>
+                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Title, location, user..." value="{{ search }}">
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1" style="padding: 0.5rem 1rem;">
+                        <i class="bi bi-search me-1"></i>Search
+                    </button>
+                    <a href="{% url 'reports_analytics' %}" class="btn btn-outline-custom btn-sm" style="padding: 0.5rem 1rem;">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        {% if reports %}
+        <div class="table-glass fade-in">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Citizen</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Worker</th>
+                        <th>Feedback</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.id }}</td>
+                        <td><strong>{{ report.title|truncatechars:25 }}</strong></td>
+                        <td>{{ report.citizen.username }}</td>
+                        <td><span class="badge bg-{{ report.priority_color }} badge-status">{{ report.get_priority_display }}</span></td>
+                        <td><span class="badge bg-{{ report.status_color }} badge-status">{{ report.get_status_display }}</span></td>
+                        <td>{{ report.assigned_worker.username|default:'-' }}</td>
+                        <td>
+                            {% with report.feedback_set.first as fb %}
+                                {% if fb %}
+                                    <span class="text-warning">
+                                    {% for i in "12345"|make_list %}{% if forloop.counter <= fb.rating %}★{% else %}☆{% endif %}{% endfor %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-secondary">-</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>{{ report.created_at|date:"M d" }}</td>
+                        <td>
+                            {% if report.status == 'pending' %}
+                            <a href="{% url 'assign_task' report.id %}" class="btn btn-sm btn-accent-custom" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                                <i class="bi bi-person-plus me-1"></i>Assign
+                            </a>
+                            {% else %}
+                            <span class="badge bg-secondary badge-status" style="font-size: 0.7rem;">Assigned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="glass-card empty-state fade-in">
+            <div class="empty-icon">📊</div>
+            <h5>No reports found</h5>
+            <p>{% if status_filter or priority_filter or search %}Try adjusting your filters.{% else %}No reports have been submitted yet.{% endif %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

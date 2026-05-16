@@ -1,0 +1,578 @@
+{% extends 'base.html' %}
+
+{% block title %}Nearby Bins — Smart City Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --neon-blue: #00d2ff;
+        --neon-green: #00ff88;
+        --neon-red: #ff3366;
+        --neon-orange: #ff9900;
+        --dark-bg: #0b1120;
+    }
+
+    body {
+        background: radial-gradient(circle at top right, #1a233a, var(--dark-bg));
+        color: #f1f5f9;
+    }
+
+    .dashboard-wrapper {
+        padding-top: 100px;
+        padding-bottom: 50px;
+    }
+
+    .header-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: -webkit-linear-gradient(45deg, #00d2ff, #3a7bd5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .modern-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        padding: 20px;
+    }
+
+    .map-container {
+        position: relative;
+        padding: 5px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+    }
+
+    #nearbyBinsMap {
+        height: 600px;
+        border-radius: 20px;
+        z-index: 1;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(11, 17, 32, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        border-radius: 20px;
+        transition: opacity 0.4s ease;
+    }
+
+    .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .loader-pulse {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: rgba(0, 210, 255, 0.2);
+        border: 2px solid var(--neon-blue);
+        animation: pulse-ring 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .loader-pulse i {
+        font-size: 24px;
+        color: var(--neon-blue);
+    }
+
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(0.8);
+            box-shadow: 0 0 0 0 rgba(0, 210, 255, 0.7);
+        }
+
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 20px rgba(0, 210, 255, 0);
+        }
+
+        100% {
+            transform: scale(0.8);
+            box-shadow: 0 0 0 0 rgba(0, 210, 255, 0);
+        }
+    }
+
+    /* Bins List */
+    .bin-list-container {
+        max-height: 520px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .bin-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .bin-list-container::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+    }
+
+    .bin-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 4px solid #666;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .bin-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .bin-card.border-e_waste {
+        border-left-color: var(--neon-red);
+    }
+
+    .bin-card.border-eco_friendly {
+        border-left-color: var(--neon-green);
+    }
+
+    .bin-card.border-mixed {
+        border-left-color: var(--neon-orange);
+    }
+
+    .nearest-highlight {
+        background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(0, 255, 136, 0.05));
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        border-left: 4px solid var(--neon-blue);
+        overflow: hidden;
+    }
+
+    .nearest-badge {
+        position: absolute;
+        top: 12px;
+        right: -30px;
+        background: var(--neon-blue);
+        color: #000;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 4px 30px;
+        transform: rotate(45deg);
+        box-shadow: 0 2px 10px rgba(0, 210, 255, 0.4);
+    }
+
+    /* Form Controls */
+    .filter-select {
+        background: rgba(11, 17, 32, 0.7);
+        border: 1px solid var(--glass-border);
+        color: white;
+        border-radius: 12px;
+        padding: 12px 15px;
+    }
+
+    .filter-select:focus {
+        background: rgba(11, 17, 32, 0.9);
+        border-color: var(--neon-blue);
+        color: white;
+        box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+    }
+
+    .filter-select option {
+        background: #0b1120;
+    }
+
+    /* Badges */
+    .badge-waste {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-e_waste {
+        background: rgba(255, 51, 102, 0.15);
+        color: var(--neon-red);
+        border: 1px solid var(--neon-red);
+    }
+
+    .bg-eco_friendly {
+        background: rgba(0, 255, 136, 0.15);
+        color: var(--neon-green);
+        border: 1px solid var(--neon-green);
+    }
+
+    .bg-mixed {
+        background: rgba(255, 153, 0, 0.15);
+        color: var(--neon-orange);
+        border: 1px solid var(--neon-orange);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+        border: none;
+        color: white;
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 10px 20px;
+        transition: all 0.3s;
+    }
+
+    .btn-gradient:hover {
+        box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .btn-outline-glow {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ccc;
+        border-radius: 8px;
+        padding: 5px 12px;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+    }
+
+    .btn-outline-glow:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="container-fluid px-4 px-lg-5">
+
+        <!-- Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 fade-in">
+            <div>
+                <h1 class="header-title"><i class="bi bi-geo-alt-fill me-2"></i>Smart Bin Locator</h1>
+                <p class="text-secondary mb-0">Find the nearest smart garbage bins based on your real-time location.</p>
+            </div>
+            <div class="mt-3 mt-md-0 d-flex gap-2">
+                <button id="locateMeBtn" class="btn btn-gradient">
+                    <i class="bi bi-crosshair me-2"></i>Recalculate Location
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Map Section -->
+            <div class="col-lg-8">
+                <div class="modern-card fade-in h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-funnel-fill text-secondary me-2"></i>
+                        <select id="wasteTypeFilter" class="form-select filter-select w-auto">
+                            <option value="">All Waste Types</option>
+                            <option value="e_waste">E-Waste Only</option>
+                            <option value="eco_friendly">Eco-Friendly Only</option>
+                            <option value="mixed">Mixed Waste Only</option>
+                        </select>
+                        <span id="mapStatusText" class="ms-auto text-secondary small"><i
+                                class="bi bi-broadcast me-1"></i>Awaiting location...</span>
+                    </div>
+
+                    <div class="map-container">
+                        <div id="loadingOverlay" class="loading-overlay">
+                            <div class="loader-pulse"><i class="bi bi-geo-alt"></i></div>
+                            <h5 class="text-white">Detecting Your Location...</h5>
+                            <p class="text-secondary small">Please allow location access if prompted</p>
+                        </div>
+                        <div id="nearbyBinsMap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="col-lg-4">
+                <div class="modern-card fade-in h-100">
+                    <h5 class="mb-4 d-flex align-items-center">
+                        <i class="bi bi-list-stars me-2 text-primary" style="font-size:1.4rem;"></i>
+                        Nearest Bins
+                        <span id="binCountBadge" class="badge bg-secondary ms-auto rounded-pill">0</span>
+                    </h5>
+
+                    <div id="binsList" class="bin-list-container">
+                        <div class="text-center text-secondary py-5">
+                            <i class="bi bi-geo-fill d-block mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p>Map is loading nearest bins...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://maps.googleapis.com/maps/api/js?v=weekly"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Map
+        const mapOptions = {
+            zoom: 5,
+            center: { lat: 20.5937, lng: 78.9629 }, // Default India center
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            disableDefaultUI: false,
+        };
+        const map = new google.maps.Map(document.getElementById('nearbyBinsMap'), mapOptions);
+
+        let userMarker = null;
+        let userCircle = null;
+        let binMarkers = [];
+        let infoWindow = new google.maps.InfoWindow();
+        let currentLat = null;
+        let currentLng = null;
+
+        // Elements
+        const wasteTypeFilter = document.getElementById('wasteTypeFilter');
+        const locateMeBtn = document.getElementById('locateMeBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const binsList = document.getElementById('binsList');
+        const mapStatusText = document.getElementById('mapStatusText');
+        const binCountBadge = document.getElementById('binCountBadge');
+
+        // Create Custom Icons
+        function getCustomIcon(wasteType) {
+            let fillColor = '#ff9900'; // mixed
+            if (wasteType === 'e_waste') { fillColor = '#ff3366'; }
+            else if (wasteType === 'eco_friendly') { fillColor = '#00ff88'; }
+
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: fillColor,
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+                scale: 10
+            };
+        }
+
+        // Fetch and display bins
+        function fetchNearbyBins() {
+            if (!currentLat || !currentLng) return;
+
+            const wasteType = wasteTypeFilter.value;
+            const url = `{% url 'api_nearby_bins' %}?lat=${currentLat}&lng=${currentLng}&waste_type=${wasteType}`;
+
+            mapStatusText.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i> Fetching bins...';
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    // Clear old markers
+                    binMarkers.forEach(m => m.setMap(null));
+                    binMarkers = [];
+                    binsList.innerHTML = '';
+
+                    if (!data.bins || data.bins.length === 0) {
+                        mapStatusText.innerHTML = '<i class="bi bi-exclamation-circle me-1 text-warning"></i> No bins found';
+                        binCountBadge.textContent = '0';
+                        binsList.innerHTML = `
+                        <div class="text-center text-secondary py-5">
+                            <i class="bi bi-inbox d-block mb-3" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                            <p>No bins found for the selected category in this area.</p>
+                        </div>`;
+                        return;
+                    }
+
+                    binCountBadge.textContent = data.bins.length;
+                    mapStatusText.innerHTML = `<i class="bi bi-check-circle-fill me-1 text-success"></i> ${data.bins.length} bins loaded`;
+
+                    // Fit map to markers
+                    const bounds = new google.maps.LatLngBounds();
+                    bounds.extend({ lat: currentLat, lng: currentLng });
+
+                    data.bins.forEach((bin, index) => {
+                        const position = { lat: bin.latitude, lng: bin.longitude };
+                        bounds.extend(position);
+
+                        // Add Marker
+                        const marker = new google.maps.Marker({
+                            position: position,
+                            map: map,
+                            icon: getCustomIcon(bin.waste_type),
+                            title: `Bin #${bin.id}`
+                        });
+
+                        const popupHTML = `
+                        <div class="popup-content text-dark p-2" style="max-width: 200px;">
+                            <h5 class="text-primary mb-2 fw-bold">Bin #${bin.id}</h5>
+                            <p class="mb-1 small"><i class="bi bi-geo-alt text-secondary me-1"></i>${bin.location}</p>
+                            <p class="mb-1 small"><i class="bi bi-tag text-secondary me-1"></i>${bin.waste_type_display}</p>
+                            <p class="mb-1 small"><i class="bi bi-rulers text-secondary me-1"></i>${bin.distance_km} km away</p>
+                            <div class="progress mt-2 mb-1" style="height: 6px;">
+                                <div class="progress-bar ${bin.capacity > 80 ? 'bg-danger' : 'bg-success'}" style="width: ${bin.capacity}%"></div>
+                            </div>
+                            <small class="text-secondary">Capacity: ${bin.capacity}%</small>
+                            <a href="${bin.google_maps_url}" target="_blank" class="btn btn-sm btn-primary w-100 mt-2">
+                                <i class="bi bi-signpost-split me-1"></i> Get Directions
+                            </a>
+                        </div>`;
+
+                        marker.addListener('click', () => {
+                            infoWindow.setContent(popupHTML);
+                            infoWindow.open(map, marker);
+                        });
+
+                        marker.popupHTML = popupHTML;
+                        binMarkers.push(marker);
+
+                        // Add to List
+                        const isNearest = index === 0;
+                        const cardClass = isNearest ? 'nearest-highlight' : '';
+                        const badgeBadge = isNearest ? '<div class="nearest-badge">Nearest</div>' : '';
+
+                        let iconClass = 'bi-trash3';
+                        if (bin.waste_type === 'e_waste') iconClass = 'bi-pc-display';
+                        if (bin.waste_type === 'eco_friendly') iconClass = 'bi-tree';
+
+                        const listItem = `
+                        <div class="bin-card border-${bin.waste_type} ${cardClass}" onclick="focusMap(${bin.latitude}, ${bin.longitude})">
+                            ${badgeBadge}
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-0 text-white"><i class="bi ${iconClass} me-2 opacity-75"></i>Bin #${bin.id}</h6>
+                                <span class="badge-waste bg-${bin.waste_type}">${bin.waste_type_display}</span>
+                            </div>
+                            <p class="text-secondary small mb-2 lh-sm"><i class="bi bi-geo-alt me-1"></i>${bin.location}</p>
+                            <div class="d-flex justify-content-between align-items-end mt-3">
+                                <div>
+                                    <div class="text-white fw-bold fs-5">${bin.distance_km} <span class="fs-6 text-secondary fw-normal">km</span></div>
+                                    <small class="text-secondary">Status: <span class="${bin.capacity > 80 ? 'text-danger' : 'text-success'}">${bin.status}</span></small>
+                                </div>
+                                <a href="${bin.google_maps_url}" target="_blank" class="btn btn-outline-glow" onclick="event.stopPropagation();">
+                                    <i class="bi bi-geo-alt-fill"></i> Nav
+                                </a>
+                            </div>
+                        </div>`;
+
+                        binsList.insertAdjacentHTML('beforeend', listItem);
+                    });
+
+                    // Adjust map zoom to fit all markers if there are any
+                    if (data.bins.length > 0) {
+                        map.fitBounds(bounds);
+                    }
+
+                })
+                .catch(err => {
+                    console.error(err);
+                    mapStatusText.innerHTML = '<i class="bi bi-exclamation-triangle text-danger me-1"></i> Error loading bins';
+                    loadingOverlay.classList.add('hidden');
+                });
+        }
+
+        // Global function to focus map on specific bin from list
+        window.focusMap = function (lat, lng) {
+            map.setZoom(18);
+            map.panTo({ lat: lat, lng: lng });
+            // Find and open corresponding marker popup
+            binMarkers.forEach(m => {
+                const pos = m.getPosition();
+                if (Math.abs(pos.lat() - lat) < 0.0001 && Math.abs(pos.lng() - lng) < 0.0001) {
+                    infoWindow.setContent(m.popupHTML);
+                    infoWindow.open(map, m);
+                }
+            });
+        };
+
+        // Geolocation handler
+        function getUserLocation() {
+            loadingOverlay.classList.remove('hidden');
+            mapStatusText.innerHTML = '<i class="bi bi-geo-alt spin me-1"></i> Detecting location...';
+
+            if (!navigator.geolocation) {
+                loadingOverlay.classList.add('hidden');
+                mapStatusText.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i> Geolocation not supported';
+                alert("Geolocation is not supported by your browser.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    currentLat = position.coords.latitude;
+                    currentLng = position.coords.longitude;
+
+                    // Update User Marker
+                    if (userMarker) userMarker.setMap(null);
+                    if (userCircle) userCircle.setMap(null);
+
+                    userMarker = new google.maps.Marker({
+                        position: { lat: currentLat, lng: currentLng },
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#00d2ff',
+                            fillOpacity: 1,
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2,
+                            scale: 8
+                        },
+                        title: "Your Location"
+                    });
+
+                    userMarker.addListener('click', () => {
+                        infoWindow.setContent('<div class="text-dark p-1"><b>Your Location</b></div>');
+                        infoWindow.open(map, userMarker);
+                    });
+
+                    userCircle = new google.maps.Circle({
+                        strokeColor: "#00d2ff",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: "#00d2ff",
+                        fillOpacity: 0.1,
+                        map: map,
+                        center: { lat: currentLat, lng: currentLng },
+                        radius: 500,
+                    });
+
+                    map.setCenter({ lat: currentLat, lng: currentLng });
+                    map.setZoom(14);
+
+                    setTimeout(() => { loadingOverlay.classList.add('hidden'); }, 500);
+
+                    fetchNearbyBins();
+                },
+                error => {
+                    loadingOverlay.classList.add('hidden');
+                    mapStatusText.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i> Location access denied';
+                    let msg = "Unable to retrieve your location.";
+                    if (error.code === 1) msg = "Please allow location access in your browser to find nearby bins.";
+                    binsList.innerHTML = `<div class="alert alert-danger m-3">${msg}</div>`;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // Event Listeners
+        locateMeBtn.addEventListener('click', getUserLocation);
+        wasteTypeFilter.addEventListener('change', fetchNearbyBins);
+
+        // Auto-load on start
+        getUserLocation();
+    });
+</script>
+{% endblock %}

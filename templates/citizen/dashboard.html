@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Citizen Dashboard — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;" id="citizen-dashboard-stats">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-speedometer2 me-2"></i>Citizen Dashboard</h2>
+            <p>Welcome back, <strong>{{ request.user.username }}</strong>! Here's your report overview.
+                <span class="ms-2 small" style="color: var(--accent-green);"><span class="live-dot"></span>Live updates</span>
+            </p>
+        </div>
+
+        <!-- Stats (IDs for AJAX auto-refresh) -->
+        <div class="row g-4 mb-4">
+            <div class="col-6 col-lg-3 fade-in stagger-1">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon icon-primary"><i class="bi bi-file-earmark-text"></i></div>
+                    <div class="stat-number" id="stat-total" data-counter="{{ total }}">0</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-2">
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon icon-orange"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-number" id="stat-pending" data-counter="{{ pending }}">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-3">
+                <div class="stat-card stat-cyan">
+                    <div class="stat-icon icon-cyan"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="stat-number" id="stat-in-progress" data-counter="{{ in_progress }}">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-4">
+                <div class="stat-card stat-green">
+                    <div class="stat-icon icon-green"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-number" id="stat-resolved" data-counter="{{ resolved }}">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 fade-in">
+                <a href="{% url 'submit_report' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-4">
+                        <i class="bi bi-plus-circle" style="font-size: 2.5rem; color: var(--accent-green);"></i>
+                        <h5 class="mt-2 mb-1 text-white">Submit New Report</h5>
+                        <p class="text-secondary small mb-0">Report a garbage issue in your area</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-6 fade-in">
+                <a href="{% url 'report_list' %}" class="text-decoration-none">
+                    <div class="glass-card text-center py-4">
+                        <i class="bi bi-list-check" style="font-size: 2.5rem; color: var(--primary);"></i>
+                        <h5 class="mt-2 mb-1 text-white">View All Reports</h5>
+                        <p class="text-secondary small mb-0">Track status of all your complaints</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Reports -->
+        <div class="fade-in">
+            <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Recent Reports</h5>
+            {% if recent_reports %}
+            <div class="table-glass">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Location</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td><strong>{{ report.title|truncatechars:30 }}</strong></td>
+                            <td>{{ report.location|truncatechars:25 }}</td>
+                            <td><span class="badge bg-{{ report.priority_color }} badge-status">{{ report.get_priority_display }}</span></td>
+                            <td><span class="badge bg-{{ report.status_color }} badge-status" id="report-status-{{ report.id }}">{{ report.get_status_display }}</span></td>
+                            <td>{{ report.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-end">
+                                    {% if report.map_link %}
+                                    <a href="{{ report.map_link }}" target="_blank" class="btn btn-sm btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="View Location">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'track_report' report.id %}" class="btn btn-sm btn-outline-custom" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="glass-card empty-state">
+                <div class="empty-icon">📭</div>
+                <h5>No reports yet</h5>
+                <p>Submit your first garbage report to get started!</p>
+                <a href="{% url 'submit_report' %}" class="btn btn-accent-custom mt-2">
+                    <i class="bi bi-plus-circle me-2"></i>Submit Report
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Assign Task — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="form-page" style="padding-top: 90px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <a href="{% url 'reports_analytics' %}" class="btn btn-outline-custom btn-sm mb-3 fade-in">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Reports
+                </a>
+
+                <div class="form-card fade-in">
+                    <h4 class="mb-1"><i class="bi bi-person-plus me-2"></i>Assign Task to Worker</h4>
+                    <p class="text-secondary mb-4">Assign report #{{ report.id }} to a worker for action.</p>
+
+                    <!-- Report Summary -->
+                    <div class="glass-card mb-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="detail-label">Report</div>
+                                <div class="detail-value mb-0"><strong>{{ report.title }}</strong></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-label">Location</div>
+                                <div class="detail-value mb-0">
+                                    <i class="bi bi-geo-alt me-1" style="color: var(--accent-red);"></i>{{ report.location }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-label">Reported By</div>
+                                <div class="detail-value mb-0">
+                                    <i class="bi bi-person me-1"></i>{{ report.citizen.username }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert-custom alert-danger mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Please select a worker and priority.
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Assign Worker <span class="text-danger">*</span></label>
+                            {{ form.worker }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Priority Level <span class="text-danger">*</span></label>
+                            {{ form.priority }}
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-accent-custom">
+                                <i class="bi bi-check-lg me-2"></i>Assign Task
+                            </button>
+                            <a href="{% url 'reports_analytics' %}" class="btn btn-outline-custom">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

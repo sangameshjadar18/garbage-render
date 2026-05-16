@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}location based garbage management system{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <div class="hero-badge">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    Powered by Antigravity
+                </div>
+                <h1 class="hero-title">
+                    location based <span class="highlight">garbage</span><br>
+                    management system
+                </h1>
+                <p class="hero-subtitle">
+                    A real-time waste management platform that connects citizens, workers,
+                    and administrators for cleaner, smarter cities. Report issues, track progress,
+                    and drive accountability.
+                </p>
+                <div class="hero-buttons">
+                    {% if user.is_authenticated %}
+                    {% if user.role == 'citizen' %}
+                    <a href="{% url 'citizen_dashboard' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    {% elif user.role == 'worker' %}
+                    <a href="{% url 'worker_dashboard' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    {% elif user.role == 'admin' %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-speedometer2 me-2"></i>Go to Dashboard
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-primary-custom">
+                        <i class="bi bi-person-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-custom">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block hero-visual">
+                <div class="hero-card-float">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="stat-card stat-green">
+                                <div class="stat-icon icon-green"><i class="bi bi-check-circle"></i></div>
+                                <div class="stat-number text-gradient" data-counter="1240">0</div>
+                                <div class="stat-label">Issues Resolved</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card stat-primary">
+                                <div class="stat-icon icon-primary"><i class="bi bi-people"></i></div>
+                                <div class="stat-number" data-counter="850">0</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card stat-orange">
+                                <div class="stat-icon icon-orange"><i class="bi bi-geo-alt"></i></div>
+                                <div class="stat-number" data-counter="320">0</div>
+                                <div class="stat-label">Zones Covered</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card stat-cyan">
+                                <div class="stat-icon icon-cyan"><i class="bi bi-clock-history"></i></div>
+                                <div class="stat-number" data-counter="98">0</div>
+                                <div class="stat-label">% On-Time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="section-title">Why <span class="text-gradient">Location Based GMS</span>?</h2>
+            <p class="section-subtitle">
+                Our platform provides a complete ecosystem for waste management with powerful features for every
+                stakeholder.
+            </p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-megaphone"></i></div>
+                    <h5>Real-time Reporting</h5>
+                    <p>Citizens can submit garbage complaints instantly with location and photo evidence for faster
+                        resolution.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: var(--gradient-accent);"><i
+                            class="bi bi-person-badge"></i></div>
+                    <h5>Role-Based Access</h5>
+                    <p>Dedicated dashboards for Citizens, Workers, and Admins ensure everyone has the right tools and
+                        information.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: var(--gradient-warm);"><i
+                            class="bi bi-graph-up-arrow"></i></div>
+                    <h5>Analytics Dashboard</h5>
+                    <p>Comprehensive charts and stats give administrators a bird's-eye view of system performance and
+                        trends.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: var(--gradient-cool);"><i
+                            class="bi bi-clipboard2-check"></i></div>
+                    <h5>Task Management</h5>
+                    <p>Workers receive assigned tasks with priorities and can update status in real-time for full
+                        accountability.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                    <h5>Secure & Transparent</h5>
+                    <p>Role-based authentication and complete audit trails ensure security and transparency at every
+                        level.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 fade-in-scroll">
+                <div class="feature-card">
+                    <div class="feature-icon" style="background: var(--gradient-accent);"><i class="bi bi-phone"></i>
+                    </div>
+                    <h5>Responsive Design</h5>
+                    <p>Access the platform from any device — desktop, tablet, or mobile — with a seamless experience
+                        everywhere.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="stats-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">How It <span class="text-gradient">Works</span></h2>
+            <p class="section-subtitle">A simple 4-step workflow for efficient waste management</p>
+        </div>
+        <div class="row g-4 text-center">
+            <div class="col-md-3 fade-in-scroll">
+                <div class="glass-card h-100">
+                    <div class="stat-icon icon-primary mx-auto mb-3" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="bi bi-1-circle"></i>
+                    </div>
+                    <h5>Report</h5>
+                    <p class="text-secondary small">Citizens report garbage issues with location and photos</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in-scroll">
+                <div class="glass-card h-100">
+                    <div class="stat-icon icon-orange mx-auto mb-3" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="bi bi-2-circle"></i>
+                    </div>
+                    <h5>Assign</h5>
+                    <p class="text-secondary small">Admin reviews and assigns tasks to available workers</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in-scroll">
+                <div class="glass-card h-100">
+                    <div class="stat-icon icon-cyan mx-auto mb-3" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="bi bi-3-circle"></i>
+                    </div>
+                    <h5>Resolve</h5>
+                    <p class="text-secondary small">Workers take action and update status in real-time</p>
+                </div>
+            </div>
+            <div class="col-md-3 fade-in-scroll">
+                <div class="glass-card h-100">
+                    <div class="stat-icon icon-green mx-auto mb-3" style="width:60px;height:60px;font-size:1.5rem;">
+                        <i class="bi bi-4-circle"></i>
+                    </div>
+                    <h5>Monitor</h5>
+                    <p class="text-secondary small">Admin monitors analytics and system performance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5">
+    <div class="container">
+        <div class="glass-card text-center py-5 px-4"
+            style="border-color: var(--primary); box-shadow: var(--shadow-glow-primary);">
+            <h2 class="section-title mb-3">Ready for a <span class="text-gradient">Cleaner City</span>?</h2>
+            <p class="section-subtitle mx-auto mb-4">Join Location Based GMS today and be part of the solution. Report issues,
+                track progress, and make a difference.</p>
+            {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn btn-accent-custom btn-lg">
+                <i class="bi bi-rocket-takeoff me-2"></i>Get Started — It's Free
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

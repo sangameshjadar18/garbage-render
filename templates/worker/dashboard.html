@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Dashboard — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-tools me-2"></i>Worker Dashboard</h2>
+            <p>Welcome, <strong>{{ request.user.username }}</strong>! Manage and resolve garbage complaints across the city.</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-6 col-lg-3 fade-in stagger-1">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon icon-primary"><i class="bi bi-clipboard"></i></div>
+                    <div class="stat-number" data-counter="{{ total }}">0</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-2">
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon icon-orange"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-number" data-counter="{{ pending }}">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-3">
+                <div class="stat-card stat-cyan">
+                    <div class="stat-icon icon-cyan"><i class="bi bi-gear"></i></div>
+                    <div class="stat-number" data-counter="{{ in_progress }}">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3 fade-in stagger-4">
+                <div class="stat-card stat-green">
+                    <div class="stat-icon icon-green"><i class="bi bi-check2-all"></i></div>
+                    <div class="stat-number" data-counter="{{ completed }}">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Info Banner -->
+        {% if my_assigned > 0 %}
+        <div class="glass-card mb-4 fade-in" style="border-left: 4px solid var(--primary); padding: 1rem 1.5rem;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-person-check me-2" style="font-size: 1.3rem; color: var(--primary);"></i>
+                <span>You have <strong>{{ my_assigned }}</strong> active task{{ my_assigned|pluralize }} assigned to you.
+                    <a href="{% url 'task_list' %}?view=mine" class="ms-2" style="color: var(--primary);">View My Reports →</a>
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if assigned_bins_count > 0 %}
+        <div class="glass-card mb-4 fade-in" style="border-left: 4px solid #17a2b8; padding: 1rem 1.5rem;">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-trash3 me-2" style="font-size: 1.3rem; color: #17a2b8;"></i>
+                <span>You have <strong>{{ assigned_bins_count }}</strong> garbage bin{{ assigned_bins_count|pluralize }} assigned to you.
+                    <a href="{% url 'my_tasks' %}" class="ms-2" style="color: #17a2b8;">View My Bins →</a>
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Active Reports -->
+        <div class="fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-list-task me-2"></i>Active Reports</h5>
+                <a href="{% url 'task_list' %}" class="btn btn-outline-custom btn-sm">View All Reports</a>
+            </div>
+
+            {% if recent_tasks %}
+            <div class="row g-3">
+                {% for task in recent_tasks %}
+                <div class="col-md-6">
+                    <div class="glass-card h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ task.title|truncatechars:30 }}</h6>
+                            <span class="badge bg-{{ task.status_color }} badge-status">{{ task.get_status_display }}</span>
+                        </div>
+                        <p class="text-secondary small mb-1">
+                            <i class="bi bi-person me-1"></i>Reported by: {{ task.citizen.username }}
+                        </p>
+                        <p class="text-secondary small mb-2">
+                            <i class="bi bi-geo-alt me-1"></i>{{ task.location|truncatechars:40 }}
+                        </p>
+                        <p class="text-secondary small mb-3">
+                            <i class="bi bi-flag me-1"></i>Priority: 
+                            <span class="badge bg-{{ task.priority_color }} badge-status">{{ task.get_priority_display }}</span>
+                            {% if task.assigned_worker %}
+                                <span class="ms-2"><i class="bi bi-person-check me-1"></i>{{ task.assigned_worker.username }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary badge-status ms-2">Unassigned</span>
+                            {% endif %}
+                        </p>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'task_detail' task.id %}" class="btn btn-primary-custom btn-sm" style="padding: 0.4rem 1rem; font-size: 0.8rem;">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                            {% if task.status != 'resolved' and task.citizen.is_citizen %}
+                            <a href="{% url 'update_task_status' task.id %}" class="btn btn-accent-custom btn-sm" style="padding: 0.4rem 1rem; font-size: 0.8rem;">
+                                <i class="bi bi-pencil me-1"></i>Update
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="glass-card empty-state">
+                <div class="empty-icon">✅</div>
+                <h5>No active reports</h5>
+                <p>All reports have been resolved! Great work.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Assigned Bins Section -->
+        {% if assigned_bins %}
+        <div class="fade-in mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-trash3 me-2"></i>Assigned Bins</h5>
+                <a href="{% url 'my_tasks' %}" class="btn btn-outline-custom btn-sm">View All Bins</a>
+            </div>
+            <div class="row g-3">
+                {% for bin in assigned_bins %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0"><i class="bi bi-trash3 me-2"></i>Bin #{{ bin.id }}</h6>
+                            <span class="badge bg-{{ bin.status_color }} badge-status">{{ bin.get_status_display }}</span>
+                        </div>
+                        <p class="text-secondary small mb-1">
+                            <i class="bi bi-geo-alt me-1"></i>{{ bin.location|truncatechars:35 }}
+                        </p>
+                        <p class="text-secondary small mb-2">
+                            <i class="bi bi-speedometer me-1"></i>Capacity: {{ bin.capacity }}%
+                        </p>
+                        <div class="progress mb-2" style="height: 6px; background: rgba(255,255,255,0.05);">
+                            <div class="progress-bar bg-{{ bin.status_color }}" style="width: {{ bin.capacity }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

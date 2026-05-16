@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}User Feedback — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+            <div>
+                <h2><i class="bi bi-star-fill text-warning me-2"></i>User Feedback</h2>
+                <p class="text-secondary">View feedback and ratings submitted by citizens.</p>
+            </div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-custom">
+                <i class="bi bi-arrow-left me-1"></i>Dashboard
+            </a>
+        </div>
+
+        <div class="filter-bar fade-in mb-4">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Filter by Rating</label>
+                    <select name="rating" class="form-select form-select-sm">
+                        <option value="">All Ratings</option>
+                        <option value="5" {% if rating_filter == '5' %}selected{% endif %}>⭐⭐⭐⭐⭐ (5 Stars)</option>
+                        <option value="4" {% if rating_filter == '4' %}selected{% endif %}>⭐⭐⭐⭐ (4 Stars)</option>
+                        <option value="3" {% if rating_filter == '3' %}selected{% endif %}>⭐⭐⭐ (3 Stars)</option>
+                        <option value="2" {% if rating_filter == '2' %}selected{% endif %}>⭐⭐ (2 Stars)</option>
+                        <option value="1" {% if rating_filter == '1' %}selected{% endif %}>⭐ (1 Star)</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1" style="padding: 0.5rem;">
+                        Filter
+                    </button>
+                    <a href="{% url 'manage_feedback' %}" class="btn btn-outline-custom btn-sm" style="padding: 0.5rem;">Clear</a>
+                </div>
+            </form>
+        </div>
+
+        {% if feedbacks %}
+        <div class="table-glass fade-in">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Citizen</th>
+                        <th>Worker</th>
+                        <th>Report</th>
+                        <th>Rating</th>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in feedbacks %}
+                    <tr>
+                        <td><strong>{{ item.user.username }}</strong></td>
+                        <td>
+                            {% if item.report.worker %}
+                                <span class="badge bg-success badge-status"><i class="bi bi-person me-1"></i>{{ item.report.worker.username }}</span>
+                            {% elif item.report.assigned_worker %}
+                                <span class="badge bg-secondary badge-status"><i class="bi bi-person me-1"></i>{{ item.report.assigned_worker.username }}</span>
+                            {% else %}
+                                <span class="text-secondary">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reports_analytics' %}?search={{ item.report.title }}" class="text-info text-decoration-none">
+                                {{ item.report.title|truncatechars:30 }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="text-warning">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="small text-secondary ms-1">({{ item.rating }})</span>
+                        </td>
+                        <td><div class="text-wrap" style="max-width: 300px;">{{ item.message }}</div></td>
+                        <td>{{ item.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="glass-card empty-state fade-in">
+            <div class="empty-icon text-warning">⭐</div>
+            <h5>No Feedback Found</h5>
+            <p>Your citizens haven't submitted any feedback matching the criteria.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

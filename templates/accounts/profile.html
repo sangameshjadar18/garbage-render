@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="detail-card fade-in">
+                    <div class="detail-header text-center">
+                        {% if user.profile_image %}
+                            <img src="{{ user.profile_image.url }}" alt="Profile" class="profile-avatar">
+                        {% else %}
+                            <div class="profile-avatar-placeholder">{{ user.username|first|upper }}</div>
+                        {% endif %}
+                        <h4 class="mb-1">{{ user.username }}</h4>
+                        <span class="badge bg-{{ user.role }}-badge" style="background: var(--gradient-primary); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.8rem;">
+                            {{ user.get_role_display }}
+                        </span>
+                    </div>
+                    <div class="detail-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+
+                            {% if form.errors %}
+                            <div class="alert-custom alert-danger mb-3">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Please correct the errors below.
+                            </div>
+                            {% endif %}
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">First Name</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">Last Name</label>
+                                    {{ form.last_name }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">Email</label>
+                                    {{ form.email }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">Phone</label>
+                                    {{ form.phone }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">Address</label>
+                                    {{ form.address }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem;">Profile Image</label>
+                                    {{ form.profile_image }}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary-custom mt-4">
+                                <i class="bi bi-check-lg me-2"></i>Update Profile
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

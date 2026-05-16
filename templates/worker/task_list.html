@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}All Reports — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-clipboard-check me-2"></i>All Reports</h2>
+            <p>View and manage all garbage complaints in the system.</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-in">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>Assigned</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">Priority</label>
+                    <select name="priority" class="form-select form-select-sm">
+                        <option value="">All Priorities</option>
+                        <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="critical" {% if priority_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-secondary mb-1">View</label>
+                    <select name="view" class="form-select form-select-sm">
+                        <option value="">All Reports</option>
+                        <option value="mine" {% if view_filter == 'mine' %}selected{% endif %}>My Assigned Only</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1" style="padding: 0.5rem 1rem;">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="{% url 'task_list' %}" class="btn btn-outline-custom btn-sm" style="padding: 0.5rem 1rem;">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        {% if tasks %}
+        <div class="table-glass fade-in">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Location</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Reported By</th>
+                        <th>Assigned To</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.id }}</td>
+                        <td><strong>{{ task.title|truncatechars:30 }}</strong></td>
+                        <td>{{ task.location|truncatechars:25 }}</td>
+                        <td><span class="badge bg-{{ task.priority_color }} badge-status">{{ task.get_priority_display }}</span></td>
+                        <td><span class="badge bg-{{ task.status_color }} badge-status">{{ task.get_status_display }}</span></td>
+                        <td>{{ task.citizen.username }}</td>
+                        <td>
+                            {% if task.assigned_worker %}
+                                {{ task.assigned_worker.username }}
+                            {% else %}
+                                <span class="badge bg-secondary badge-status">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 justify-content-end">
+                                {% if task.map_link %}
+                                <a href="{{ task.map_link }}" target="_blank" class="btn btn-sm btn-primary" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" title="View Location">
+                                    <i class="bi bi-geo-alt"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-custom" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if task.status != 'resolved' and request.user.is_worker %}
+                                <a href="{% url 'update_task_status' task.id %}" class="btn btn-sm btn-accent-custom" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="glass-card empty-state fade-in">
+            <div class="empty-icon">📋</div>
+            <h5>No reports found</h5>
+            <p>{% if status_filter or priority_filter or view_filter %}Try changing your filters.{% else %}No reports in the system yet.{% endif %}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

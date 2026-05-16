@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Task — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="form-page" style="padding-top: 90px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-custom btn-sm mb-3 fade-in">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Task
+                </a>
+
+                <div class="form-card fade-in">
+                    <h4 class="mb-1"><i class="bi bi-pencil-square me-2"></i>Update Task Status</h4>
+                    <p class="text-secondary mb-4">{{ task.title }}</p>
+
+                    <!-- Current status display -->
+                    <div class="glass-card mb-4" style="padding: 1rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small">Current Status:</span>
+                            <span id="current-status-display" class="badge bg-{{ task.status_color }} badge-status">{{ task.get_status_display }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Report summary -->
+                    <div class="glass-card mb-4" style="padding: 1rem;">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="detail-label">Reported By</div>
+                                <div class="small"><i class="bi bi-person me-1"></i>{{ task.citizen.username }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="detail-label">Priority</div>
+                                <span class="badge bg-{{ task.priority_color }} badge-status">{{ task.get_priority_display }}</span>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <div class="detail-label">Location</div>
+                                <div class="small"><i class="bi bi-geo-alt me-1"></i>{{ task.location|truncatechars:50 }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if task.image %}
+                    <div class="mb-4">
+                        <div class="detail-label mb-2">Photo Evidence</div>
+                        <img src="{{ task.image.url }}" alt="Task Image" class="detail-image w-100" style="max-height: 250px; object-fit: cover;">
+                    </div>
+                    {% endif %}
+
+                    <!-- Status update form with file upload support -->
+                    <form method="POST" action="{% url 'update_task_status' task.id %}" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">New Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select" {% if task.status == 'resolved' %}disabled{% endif %}>
+                                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>🔄 In Progress</option>
+                                <option value="resolved">✅ Resolved</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea name="worker_notes" rows="3" class="form-control" placeholder="Add notes about the task..." {% if task.status == 'resolved' %}disabled{% endif %}>{{ task.worker_notes|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label"><i class="bi bi-camera me-1"></i>Proof of Work (Upload image)</label>
+                            <input type="file" name="completion_image" class="form-control" accept="image/*" {% if task.status == 'resolved' %}disabled{% endif %}>
+                            <small class="text-secondary">Upload a photo as proof after completing the task</small>
+                        </div>
+
+                        {% if task.completion_image %}
+                        <div class="mb-4">
+                            <div class="detail-label mb-2">Previously Uploaded Proof</div>
+                            <img src="{{ task.completion_image.url }}" alt="Completion Proof" class="detail-image w-100" style="max-height: 250px; object-fit: cover; border-radius: 8px;">
+                        </div>
+                        {% endif %}
+
+                        {% if task.status != 'resolved' %}
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-accent-custom">
+                                <i class="bi bi-check-lg me-2"></i>Update Status
+                            </button>
+                            <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-custom">Cancel</a>
+                        </div>
+                        {% else %}
+                        <div class="glass-card text-center" style="padding: 1rem; border-left: 4px solid var(--accent-green);">
+                            <i class="bi bi-check-circle-fill me-2" style="color: var(--accent-green);"></i>
+                            <span>This task has been resolved.</span>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

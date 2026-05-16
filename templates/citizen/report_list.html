@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reports — Location Based GMS{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper" style="padding-top: 90px;">
+    <div class="container">
+        <div class="dashboard-header fade-in">
+            <h2><i class="bi bi-list-check me-2"></i>My Reports</h2>
+            <p>View and track all your submitted garbage reports.</p>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar fade-in">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>Assigned</option>
+                        <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-secondary mb-1">Priority</label>
+                    <select name="priority" class="form-select form-select-sm">
+                        <option value="">All Priorities</option>
+                        <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="critical" {% if priority_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1" style="padding: 0.5rem 1rem;">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="{% url 'report_list' %}" class="btn btn-outline-custom btn-sm" style="padding: 0.5rem 1rem;">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reports Table -->
+        {% if reports %}
+        <div class="table-glass fade-in">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Location</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Worker</th>
+                        <th>Proof</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>{{ report.id }}</td>
+                        <td><strong>{{ report.title|truncatechars:35 }}</strong></td>
+                        <td>{{ report.location|truncatechars:30 }}</td>
+                        <td><span class="badge bg-{{ report.priority_color }} badge-status">{{ report.get_priority_display }}</span></td>
+                        <td><span class="badge bg-{{ report.status_color }} badge-status">{{ report.get_status_display }}</span></td>
+                        <td>
+                            {% if report.worker %}
+                                <span class="badge bg-success mb-1 d-block w-100">Worker Assigned</span>
+                                <div class="small mt-1 text-wrap" style="line-height: 1.2;">
+                                    <strong>{{ report.worker.username }}</strong><br>
+                                    <span class="text-secondary">{{ report.worker.email }}</span>
+                                </div>
+                            {% else %}
+                                <span class="badge bg-warning text-dark mb-1 d-block w-100">Waiting for assignment</span>
+                                <div class="text-secondary small mt-1">Not assigned yet</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if report.completion_image %}
+                                <img src="{{ report.completion_image.url }}" width="120" style="border-radius: 4px; border: 1px solid var(--border);">
+                            {% else %}
+                                <span class="text-secondary small">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'track_report' report.id %}" class="btn btn-sm btn-outline-custom" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">
+                                <i class="bi bi-eye me-1"></i>Track
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="glass-card empty-state fade-in">
+            <div class="empty-icon">📋</div>
+            <h5>No reports found</h5>
+            <p>{% if status_filter or priority_filter %}Try changing your filters.{% else %}You haven't submitted any reports yet.{% endif %}</p>
+            <a href="{% url 'submit_report' %}" class="btn btn-accent-custom mt-2">
+                <i class="bi bi-plus-circle me-2"></i>Submit Report
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
